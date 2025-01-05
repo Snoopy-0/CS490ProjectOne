@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const addAnnouncementForm = document.getElementById('addAnnouncementForm');
     const authBtn = document.getElementById('auth-btn');
-    const toDoList = document.getElementById('todolist');
-    const grades = document.getElementById('grades');
-    const assignmentBtn = document.getElementById('assignment-btn');
     const gradesBtn = document.getElementById('grades-btn');
     const token = localStorage.getItem('token');
 
@@ -11,13 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const payload = JSON.parse(atob(token.split('.')[1])); // token decoding
         const userRole = payload.role;
 
-        // Login Status: Present To-Do List and Grades
-        toDoList.style.display = 'block';
-        grades.style.display = 'block';
-
         // Assignment button becomes clickable
         assignmentBtn.addEventListener('click', () => {
             window.location.href = 'assignment.html';
+        });
+
+        // Grades button functionality based on role
+        gradesBtn.addEventListener('click', () => {
+            if (userRole === 'professor') {
+                window.location.href = 'grading_professor.html'; // Professor grading page
+            } else if (userRole === 'student') {
+                window.location.href = 'grading_student.html'; // Student grading page
+            } else {
+                alert('Invalid user role. Please contact support.');
+            }
         });
 
         // Grades button functionality based on role
@@ -60,4 +65,21 @@ document.addEventListener('DOMContentLoaded', () => {
         authBtn.textContent = 'Login';
         authBtn.href = 'login.html';
     }
+
+    addAnnouncementForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const title = document.getElementById('announcementTitle').value;
+        const content = document.getElementById('announcementContent').value;
+
+        const newAnnouncement = { title, content };
+
+        // 로컬 스토리지에 저장
+        const announcements = JSON.parse(localStorage.getItem('announcements')) || [];
+        announcements.push(newAnnouncement);
+        localStorage.setItem('announcements', JSON.stringify(announcements));
+
+        alert('Announcement added successfully!');
+        window.location.href = 'announcement.html'; // Announcement 페이지로 리디렉션
+    });
 });

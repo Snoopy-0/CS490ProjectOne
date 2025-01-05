@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Announcement</title>
+    <link rel="stylesheet" href="styles_announcement.css">
+</head>
+<body class="assignment-page">
+    <div class="topnav">
+        <div class="user">
+            <span>CS 490 Webpage</span>
+        </div>
+        <div class="links">
+            <a href="cs490webpage.html">Home</a>
+            <a href="announcement.html" class="active">Announcements</a>
+            <a href="grading_professor.html">Grades</a>
+            <a href="assignment.html">Assignments</a>
+            <a href="#" id="auth-btn">Login</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Add New Announcement</h2>
+        <form id="addAnnouncementForm">
+            <label for="announcementTitle">Title:</label>
+            <input type="text" id="announcementTitle" placeholder="Enter announcement title" required>
+
+            <label for="announcementContent">Content:</label>
+            <textarea id="announcementContent" rows="4" placeholder="Enter announcement content" required></textarea>
+
+            <button type="submit">Save Announcement</button>
+        </form>
+    </div>
+
+    <script src="add_announcement.js"></script>
+</body>
+</html>

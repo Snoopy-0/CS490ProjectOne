@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignments</title>
+    <link rel="stylesheet" href="styles_assignment.css">
+</head>
+<body class="assignment-page">
+    <div class="topnav">
+        <div class="user">
+            <span>CS 490 Webpage</span>
+        </div>
+        <div class="links">
+            <a href="cs490webpage.html">Home</a>
+            <a href="announcement.html">Announcements</a>
+            <a id="grades-btn">Grades</a>
+            <a href="assignment.html" class="active">Assignments</a>
+            <a href="#" id="auth-btn">Login</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Add New Assignment</h2>
+        <form id="addAssignmentForm">
+            <label for="assignmentTitle">Title:</label>
+            <input type="text" id="assignmentTitle" placeholder="Enter assignment title" required>
+
+            <label for="assignmentDescription">Description:</label>
+            <textarea id="assignmentDescription" rows="4" placeholder="Enter assignment description" required></textarea>
+
+            <label for="assignmentDueDate">Due Date:</label>
+            <input type="date" id="assignmentDueDate" required>
+
+            <button type="submit">Save Assignment</button>
+        </form>
+    </div>
+
+    <script src="add_assignment.js"></script>
+</body>
+</html>

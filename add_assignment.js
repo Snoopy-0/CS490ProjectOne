@@ -1,19 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     const authBtn = document.getElementById('auth-btn');
-    const toDoList = document.getElementById('todolist');
-    const grades = document.getElementById('grades');
-    const assignmentBtn = document.getElementById('assignment-btn');
+    const addAssignmentForm = document.getElementById('addAssignmentForm');
     const gradesBtn = document.getElementById('grades-btn');
     const token = localStorage.getItem('token');
-
+    
     if (token) {
         // Get a role from JWT token
         const payload = JSON.parse(atob(token.split('.')[1])); // token decoding
         const userRole = payload.role;
-
-        // Login Status: Present To-Do List and Grades
-        toDoList.style.display = 'block';
-        grades.style.display = 'block';
 
         // Assignment button becomes clickable
         assignmentBtn.addEventListener('click', () => {
@@ -60,4 +54,22 @@ document.addEventListener('DOMContentLoaded', () => {
         authBtn.textContent = 'Login';
         authBtn.href = 'login.html';
     }
+    
+    addAssignmentForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const title = document.getElementById('assignmentTitle').value;
+        const description = document.getElementById('assignmentDescription').value;
+        const dueDate = document.getElementById('assignmentDueDate').value;
+
+        const newAssignment = { title, description, dueDate };
+
+        // 로컬 스토리지에 저장
+        const assignments = JSON.parse(localStorage.getItem('assignments')) || [];
+        assignments.push(newAssignment);
+        localStorage.setItem('assignments', JSON.stringify(assignments));
+
+        alert('Assignment added successfully!');
+        window.location.href = 'assignment.html'; // Assignments 페이지로 리디렉션
+    });
 });

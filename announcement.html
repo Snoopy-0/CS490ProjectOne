@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcements</title>
+    <link rel="stylesheet" href="styles_announcement.css">
+</head>
+<body class="assignment-page">
+    <div class="topnav">
+        <div class="user">
+            <span>CS 490 Webpage</span>
+        </div>
+        <div class="links">
+            <a href="cs490webpage.html">Home</a>
+            <a href="announcement.html" class="active">Announcements</a>
+            <a id="grades-btn" title="View Grades or Grade Assignments">Grades</a>
+            <a id="assignment-btn" title="View or Add Assignments">Assignments</a>
+            <a href="#" id="auth-btn">Login</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Announcement List</h2>
+        <ul id="announcementList">
+            <!-- Announcements will be loaded dynamically -->
+        </ul>
+
+        <!-- Add Announcement Button -->
+        <button id="addAnnouncementBtn" style="display: none;" onclick="location.href='add_announcement.html'">Add Announcement</button>
+    </div>
+
+    <script src="announcement.js"></script>
+</body>
+</html>

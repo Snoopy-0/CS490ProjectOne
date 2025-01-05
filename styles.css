@@ -191,3 +191,29 @@ body {
     font-size: 16px;
     margin-top: 10px;
 }
+
+/* Grading Table Styling */
+.grading-table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.grading-table th, .grading-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.grading-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+.grading-table tr:hover {
+    background-color: #f9f9f9;
+}
