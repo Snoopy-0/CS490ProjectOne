@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 490 Grades</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="topnav">
+        <div class="user">
+            <span>CS 490 Webpage</span>
+        </div>
+        <div class="links">
+            <a href="cs490webpage.html">Home</a>
+            <a href="announcements.html">Announcements</a>
+            <a href="grades.html" id="grades-btn" class="active">Grades</a>
+            <a href="assignments.html" id="assignments-btn">Assignments</a>
+            <a href="#" id="auth-btn">Login</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- User Information Section -->
+        <div id="user-info" class="user-info">
+            <h2>User Information</h2>
+            <p id="username"></p>
+            <p id="id"></p>
+            <p id="firstname"></p>
+            <p id="lastname"></p>
+            <p id="major-department"></p>
+            <p id="total_grade" class="total-grade" style="display: none;"></p>
+            <p id="section" style="display: none;"></p>
+        </div>
+
+        <!-- Grades Section -->
+        <div id="grades" class="grades">
+            <div class="grades-header">
+                <h2>Grades</h2>
+                <div>
+                    <select id="section-filter" style="display: none;">
+                        <option value="">All Sections</option>
+                    </select>
+                    <select id="assignment-filter" style="display: none;">
+                        <option value="">All Assignments</option>
+                    </select>
+                    <button id="grade-assignment-btn" style="display: none;">Grade Assignment</button>
+                </div>
+            </div>
+            <div class="grades-columns">
+                <div class="graded-assignments">
+                    <h3>Graded Assignments</h3>
+                    <div id="graded-assignments-list"></div>
+                </div>
+                <div class="not-graded-assignments">
+                    <h3>Not Graded Yet</h3>
+                    <div id="not-graded-assignments-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grade Assignment Popup -->
+    <div id="grade-assignment-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <span class="close">&times;</span>
+            <h2>Grade Assignment</h2>
+            <form id="grade-assignment-form">
+                <label for="student-select">Student:</label>
+                <select id="student-select" name="student" required>
+                    <!-- Options will be populated dynamically -->
+                </select>
+
+                <label for="grade">Grade:</label>
+                <input type="number" id="grade" name="grade" required>
+
+                <button type="submit">Submit Grade</button>
+            </form>
+            <p id="grade-assignment-message"></p>
+        </div>
+    </div>
+
+    <!-- Submission Popup -->
+    <div id="submission-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <span class="close">&times;</span>
+            <h2>Submission Details</h2>
+            <p id="submission-grade"></p>
+            <p id="submission-text"></p>
+            <p id="submission-comment"></p>
+            <a id="submission-file" href="#" target="_blank">Download File</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const authBtn = document.getElementById('auth-btn'); // Login/Logout button
+            const token = localStorage.getItem('token'); // Check JWT token
+            const user = JSON.parse(localStorage.getItem('user')); // Get user information
+            console.log('Token:', token); // Log the token to the console
+            if (token) {
+                // Login Status
+                authBtn.textContent = 'Logout'; // Change Button text to Logout
+                authBtn.href = '#';
+                authBtn.addEventListener('click', () => {
+                    // Logout process
+                    localStorage.removeItem('token'); // Remove token
+                    localStorage.removeItem('user'); // Remove user information
+                    alert('You have been logged out.');
+                    window.location.reload();
+                });
+
+                // Display user information
+                if (user) {
+                    console.log('User information:', user); // Log the user information to the console
+                    document.getElementById('username').textContent = `Username: ${user.Username}`;
+                    document.getElementById('id').textContent = `ID: ${user.ID}`;
+                    document.getElementById('firstname').textContent = `First Name: ${user.First_Name}`;
+                    document.getElementById('lastname').textContent = `Last Name: ${user.Last_Name}`;
+                    document.getElementById('major-department').textContent = `Major/Department: ${user.Major_Department}`;
+
+                    if (user.Role === 'Student') {
+                        document.getElementById('total_grade').textContent = `Total Grade: ${user.Total_Grade}`;
+                        document.getElementById('total_grade').style.display = 'block';
+                        document.getElementById('section').textContent = `Section: ${user.Section}`;
+
+                        // Fetch and display grades for students
+                        try {
+                            const response = await fetch(`/grades/student/${user.ID}`);
+                            const grades = await response.json();
+                            const gradedAssignments = grades.filter(grade => grade.Grade !== null);
+                            const notGradedAssignments = grades.filter(grade => grade.Grade === null);
+                            const gradedAssignmentsList = document.getElementById('graded-assignments-list');
+                            const notGradedAssignmentsList = document.getElementById('not-graded-assignments-list');
+                            gradedAssignmentsList.innerHTML = gradedAssignments.map(grade => 
+                                `<div class="grade-item">
+                                    <h3 class="assignment-title" data-assignment-id="${grade.Assignment_ID}">${grade.Title}</h3>
+                                    <p>${grade.Post}</p>
+                                    <p><small>Section: ${grade.Section_ID}</small></p>
+                                    <p><small>Points: ${grade.Points}</small></p>
+                                    ${grade.Attachment_URL ? `<p><a href="${grade.Attachment_URL}" target="_blank">Attachment</a></p>` : ''}
+                                    <div class="bottom-right">
+                                        <p class="grade">${grade.Grade}%</p>
+                                        <p class="due-date"><small>Due: ${new Date(grade.Due_Date).toLocaleString()}</small></p>
+                                    </div>
+                                </div>`
+                            ).join('');
+                            notGradedAssignmentsList.innerHTML = notGradedAssignments.map(grade => 
+                                `<div class="grade-item">
+                                    <h3 class="assignment-title" data-assignment-id="${grade.Assignment_ID}">${grade.Title}</h3>
+                                    <p>${grade.Post}</p>
+                                    <p><small>Section: ${grade.Section_ID}</small></p>
+                                    <p><small>Points: ${grade.Points}</small></p>
+                                    ${grade.Attachment_URL ? `<p><a href="${grade.Attachment_URL}" target="_blank">Attachment</a></p>` : ''}
+                                    <div class="bottom-right">
+                                        <p class="grade">Not Graded Yet</p>
+                                        <p class="due-date"><small>Due: ${new Date(grade.Due_Date).toLocaleString()}</small></p>
+                                    </div>
+                                </div>`
+                            ).join('');
+                        } catch (error) {
+                            console.error('Error fetching grades for student:', error);
+                        }
+                    } else if (user.Role === 'Professor') {
+                        document.getElementById('grade-assignment-btn').style.display = 'block';
+                        document.getElementById('section-filter').style.display = 'block';
+                        document.getElementById('assignment-filter').style.display = 'block';
+
+                        // Fetch and display sections and assignments for professors
+                        const fetchSectionsAndAssignments = async () => {
+                            try {
+                                const sectionsResponse = await fetch(`/sections?professorId=${user.ID}`);
+                                const sections = await sectionsResponse.json();
+                                const sectionFilter = document.getElementById('section-filter');
+                                sectionFilter.innerHTML += sections.map(section => 
+                                    `<option value="${section.Section_ID}">${section.Section_ID}</option>`
+                                ).join('');
+
+                                const assignmentsResponse = await fetch(`/assignments/professor/${user.ID}`);
+                                const assignments = await assignmentsResponse.json();
+                                const assignmentFilter = document.getElementById('assignment-filter');
+                                assignmentFilter.innerHTML += assignments.map(assignment => 
+                                    `<option value="${assignment.Assignment_ID}">${assignment.Title}</option>`
+                                ).join('');
+
+                                sectionFilter.addEventListener('change', async (event) => {
+                                    const sectionId = event.target.value;
+                                    await fetchGrades(sectionId, assignmentFilter.value);
+                                });
+
+                                assignmentFilter.addEventListener('change', async (event) => {
+                                    const assignmentId = event.target.value;
+                                    await fetchGrades(sectionFilter.value, assignmentId);
+                                });
+                            } catch (error) {
+                                console.error('Error fetching sections and assignments:', error);
+                            }
+                        };
+
+                        const fetchGrades = async (sectionId, assignmentId) => {
+                            try {
+                                const response = await fetch(`/grades/professor/${user.ID}?sectionId=${sectionId}&assignmentId=${assignmentId}`);
+                                const grades = await response.json();
+                                const gradesList = document.getElementById('grades-list');
+                                gradesList.innerHTML = grades.map(grade => 
+                                    `<div class="grade-item">
+                                        <h3>${grade.Title}</h3>
+                                        <p>${grade.Post}</p>
+                                        <p><small>Section: ${grade.Section_ID}</small></p>
+                                        <p><small>Points: ${grade.Points}</small></p>
+                                        ${grade.Attachment_URL ? `<p><a href="${grade.Attachment_URL}" target="_blank">Attachment</a></p>` : ''}
+                                        <div class="bottom-right">
+                                            <p class="grade">${grade.Grade !== null ? `${grade.Grade}%` : 'Not Graded Yet'}</p>
+                                            <button class="grade-assignment-btn" data-assignment-id="${grade.Assignment_ID}" data-student-id="${grade.Student_ID}">Grade</button>
+                                            <p class="due-date"><small>Due: ${new Date(grade.Due_Date).toLocaleString()}</small></p>
+                                        </div>
+                                    </div>`
+                                ).join('');
+                            } catch (error) {
+                                console.error('Error fetching grades:', error);
+                            }
+                        };
+
+                        await fetchSectionsAndAssignments();
+
+                        // Grade Assignment Button Click
+                        const gradeAssignmentBtn = document.getElementById('grade-assignment-btn');
+                        const gradeAssignmentPopup = document.getElementById('grade-assignment-popup');
+                        const closeBtn = gradeAssignmentPopup.querySelector('.close');
+
+                        document.addEventListener('click', (event) => {
+                            if (event.target.classList.contains('grade-assignment-btn')) {
+                                gradeAssignmentPopup.style.display = 'block';
+                                gradeAssignmentPopup.dataset.assignmentId = event.target.dataset.assignmentId;
+                                gradeAssignmentPopup.dataset.studentId = event.target.dataset.studentId;
+                            }
+                        });
+
+                        closeBtn.addEventListener('click', () => {
+                            gradeAssignmentPopup.style.display = 'none';
+                        });
+
+                        window.addEventListener('click', (event) => {
+                            if (event.target === gradeAssignmentPopup) {
+                                gradeAssignmentPopup.style.display = 'none';
+                            }
+                        });
+
+                        // Grade Assignment Form Submission
+                        const gradeAssignmentForm = document.getElementById('grade-assignment-form');
+                        gradeAssignmentForm.addEventListener('submit', async (event) => {
+                            event.preventDefault();
+
+                            const formData = new FormData(gradeAssignmentForm);
+                            const assignmentId = gradeAssignmentPopup.dataset.assignmentId;
+                            const studentId = gradeAssignmentPopup.dataset.studentId;
+
+                            try {
+                                const response = await fetch(`/grade-assignment/${assignmentId}/${studentId}`, {
+                                    method: 'POST',
+                                    body: formData
+                                });
+
+                                const responseData = await response.json();
+
+                                if (response.ok) {
+                                    document.getElementById('grade-assignment-message').style.color = 'green';
+                                    document.getElementById('grade-assignment-message').textContent = responseData.message;
+                                    setTimeout(() => {
+                                        gradeAssignmentPopup.style.display = 'none';
+                                    }, 2000);
+                                } else {
+                                    document.getElementById('grade-assignment-message').style.color = 'red';
+                                    document.getElementById('grade-assignment-message').textContent = responseData.message || 'Failed to submit grade';
+                                }
+                            } catch (error) {
+                                console.error('Error:', error);
+                                document.getElementById('grade-assignment-message').style.color = 'red';
+                                document.getElementById('grade-assignment-message').textContent = 'Failed to submit grade: ' + error.message;
+                            }
+                        });
+                    }
+                }
+            } else {
+                // Logout Status
+                authBtn.textContent = 'Login'; // Change Button text to Login
+                authBtn.href = 'login.html';
+            }
+
+            // Submission Popup
+            const submissionPopup = document.getElementById('submission-popup');
+            const closeSubmissionBtn = submissionPopup.querySelector('.close');
+
+            document.addEventListener('click', (event) => {
+                if (event.target.classList.contains('assignment-title')) {
+                    const assignmentId = event.target.dataset.assignmentId;
+                    const grade = grades.find(g => g.Assignment_ID == assignmentId);
+                    document.getElementById('submission-grade').textContent = `Grade: ${grade.Grade !== null ? grade.Grade + '%' : 'Not Graded Yet'}`;
+                    document.getElementById('submission-text').textContent = grade.Submission_Text;
+                    document.getElementById('submission-comment').textContent = grade.Submission_Comment;
+                    document.getElementById('submission-file').href = grade.Submission_URL;
+                    submissionPopup.style.display = 'block';
+                }
+            });
+
+            closeSubmissionBtn.addEventListener('click', () => {
+                submissionPopup.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === submissionPopup) {
+                    submissionPopup.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

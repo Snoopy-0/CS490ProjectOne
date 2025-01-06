@@ -12,16 +12,16 @@
             <span>CS 490 Webpage</span>
         </div>
         <div class="links">
-            <a href="#home">Home</a>
-            <a href="#announcements">Announcements</a>
-            <a href="#grades" id="grades-btn">Grades</a>
-            <a href="#assignments" id="assignments-btn">Assignments</a>
+            <a href="cs490webpage.html">Home</a>
+            <a href="#announcements.html">Announcements</a>
+            <a href="#grades.html" id="grades-btn">Grades</a>
+            <a href="assignments.html" id="assignments-btn">Assignments</a>
             <a href="#" id="auth-btn">Login</a>
         </div>
     </div>
 
     <div class="container">
-        <!-- General User Secttion -->
+        <!-- General User Section -->
         <div id="courseinfo" class="courseinfo">
             <h2>Course Info</h2>
             <p>Welcome to CS 490! Stay informed with the latest updates.</p>
@@ -33,26 +33,47 @@
         </div>
 
         <!-- Student/Professor Section -->
-        <div id="todolist" class="todolist" style="display: none;">
+        <div id="todolist" class="todolist">
             <h2>To-Do List</h2>
             <p>Assignment 1 - Due Date</p>
             <p>Assignment 2 - Due Date</p>
         </div>
 
+        <!-- Grades Section for Students -->
         <div id="grades" class="grades" style="display: none;">
             <h2>Grades</h2>
             <div class="gradeboxes">Grade 1</div>
             <div class="gradeboxes">Grade 2</div>
             <div class="gradeboxes">Grade 3</div>
         </div>
+
+        <!-- Sections Section for Professors -->
+        <div id="sections" class="sections" style="display: none;">
+            <h2>Sections</h2>
+            <ul id="sections-list"></ul>
+        </div>
+
+        <!-- User Information Section -->
+        <div id="user-info" class="user-info">
+            <h2>User Information</h2>
+            <p id="username"></p>
+            <p id="id"></p>
+            <p id="firstname"></p>
+            <p id="lastname"></p>
+            <p id="major-department"></p>
+            <p id="total_grade" style="display: none;"></p>
+            <p id="section" style="display: none;"></p>
+        </div>
     </div>
 
     <script src="script.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const authBtn = document.getElementById('auth-btn'); // Login/Logout button
             const token = localStorage.getItem('token'); // Check JWT token
+            const user = JSON.parse(localStorage.getItem('user')); // Get user information
+            console.log('Token:', token); // Log the token to the console
             if (token) {
                 // Login Status
                 authBtn.textContent = 'Logout'; // Change Button text to Logout
@@ -60,9 +81,40 @@
                 authBtn.addEventListener('click', () => {
                     // Logout process
                     localStorage.removeItem('token'); // Remove token
+                    localStorage.removeItem('user'); // Remove user information
                     alert('You have been logged out.');
                     window.location.reload();
                 });
+
+                // Display user information
+                if (user) {
+                    console.log('User information:', user); // Log the user information to the console
+                    document.getElementById('username').textContent = `Username: ${user.Username}`;
+                    document.getElementById('id').textContent = `ID: ${user.ID}`;
+                    document.getElementById('firstname').textContent = `First Name: ${user.First_Name}`;
+                    document.getElementById('lastname').textContent = `Last Name: ${user.Last_Name}`;
+                    document.getElementById('major-department').textContent = `Major/Department: ${user.Major_Department}`;
+
+                    if (user.Role === 'Student') {
+                        document.getElementById('total_grade').textContent = `Total Grade: ${user.Total_Grade}`;
+                        document.getElementById('total_grade').style.display = 'block';
+                        document.getElementById('section').textContent = `Section: ${user.Section}`;
+                        document.getElementById('section').style.display = 'block';
+                        document.getElementById('grades').style.display = 'block';
+                    } else if (user.Role === 'Professor') {
+                        try {
+                            const response = await fetch(`/sections?professorId=${user.ID}`);
+                            const sections = await response.json();
+                            const sectionsList = document.getElementById('sections-list');
+                            sectionsList.innerHTML = sections.map(section => 
+                                `<li class="section-item">Section ID: ${section.Section_ID} - Students: ${section.Student_Count}</li>`
+                            ).join('');
+                            document.getElementById('sections').style.display = 'block';
+                        } catch (error) {
+                            console.error('Error fetching sections:', error);
+                        }
+                    }
+                }
             } else {
                 // Logout Status
                 authBtn.textContent = 'Login'; // Change Button text to Login

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 490 Assignments</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="topnav">
+        <div class="user">
+            <span>CS 490 Webpage</span>
+        </div>
+        <div class="links">
+            <a href="cs490webpage.html">Home</a>
+            <a href="announcements.html">Announcements</a>
+            <a href="grades.html" id="grades-btn">Grades</a>
+            <a href="assignments.html" id="assignments-btn" class="active">Assignments</a>
+            <a href="#" id="auth-btn">Login</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Assignments Section -->
+        <div id="assignments" class="assignments">
+            <div class="assignments-header">
+                <h2>Assignments</h2>
+                <div>
+                    <select id="section-filter" style="display: none;">
+                        <option value="">All Sections</option>
+                    </select>
+                    <button id="create-assignment-btn" style="display: none;">Create Assignment</button>
+                </div>
+            </div>
+            <div id="assignments-list"></div>
+        </div>
+
+        <!-- User Information Section -->
+        <div id="user-info" class="user-info">
+            <h2>User Information</h2>
+            <p id="username"></p>
+            <p id="id"></p>
+            <p id="firstname"></p>
+            <p id="lastname"></p>
+            <p id="major-department"></p>
+            <p id="total_grade" style="display: none;"></p>
+            <p id="section" style="display: none;"></p>
+            <div id="sections" class="sections" style="display: none;">
+                <h2>Sections</h2>
+                <ul id="sections-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Assignment Popup -->
+    <div id="create-assignment-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <span class="close">&times;</span>
+            <h2>Create Assignment</h2>
+            <form id="create-assignment-form">
+                <label for="section-select">Section:</label>
+                <select id="section-select" name="section" required>
+                    <!-- Options will be populated dynamically -->
+                </select>
+
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
+
+                <label for="post">Post:</label>
+                <textarea id="post" name="post" required></textarea>
+
+                <label for="attachment_url">Attachment URL:</label>
+                <input type="file" id="attachment_url" name="attachment_url">
+
+                <label for="due_date">Due Date:</label>
+                <input type="datetime-local" id="due_date" name="due_date" required>
+
+                <label for="points">Points:</label>
+                <input type="number" id="points" name="points" required>
+
+                <button type="submit">Create Assignment</button>
+            </form>
+            <p id="create-assignment-message"></p>
+        </div>
+    </div>
+
+    <!-- Submission Popup -->
+    <div id="submission-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <span class="close">&times;</span>
+            <h2>Submit Assignment</h2>
+            <form id="submission-form">
+                <input type="hidden" id="student-id" name="studentId" value="">
+                <label for="submission-file">Upload File:</label>
+                <input type="file" id="submission-file" name="submission-file" required>
+
+                <label for="submission-text">Text Submission (Optional):</label>
+                <textarea id="submission-text" name="submission_text" rows="4"></textarea>
+
+                <label for="submission-comment">Comment (Optional):</label>
+                <textarea id="submission-comment" name="submission_comment" rows="4"></textarea>
+
+                <button type="submit" class="submit-button">Submit Assignment</button>
+            </form>
+            <p id="submission-date"></p>
+            <p id="submission-message"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const authBtn = document.getElementById('auth-btn'); // Login/Logout button
+            const token = localStorage.getItem('token'); // Check JWT token
+            const user = JSON.parse(localStorage.getItem('user')); // Get user information
+            console.log('Token:', token); // Log the token to the console
+            if (token) {
+                // Login Status
+                authBtn.textContent = 'Logout'; // Change Button text to Logout
+                authBtn.href = '#';
+                authBtn.addEventListener('click', () => {
+                    // Logout process
+                    localStorage.removeItem('token'); // Remove token
+                    localStorage.removeItem('user'); // Remove user information
+                    alert('You have been logged out.');
+                    window.location.reload();
+                });
+
+                // Display user information
+                if (user) {
+                    console.log('User information:', user); // Log the user information to the console
+                    document.getElementById('username').textContent = `Username: ${user.Username}`;
+                    document.getElementById('id').textContent = `ID: ${user.ID}`;
+                    document.getElementById('firstname').textContent = `First Name: ${user.First_Name}`;
+                    document.getElementById('lastname').textContent = `Last Name: ${user.Last_Name}`;
+                    document.getElementById('major-department').textContent = `Major/Department: ${user.Major_Department}`;
+
+                    if (user.Role === 'Student') {
+                        document.getElementById('total_grade').textContent = `Total Grade: ${user.Total_Grade}`;
+                        document.getElementById('total_grade').style.display = 'block';
+                        document.getElementById('section').textContent = `Section: ${user.Section}`;
+
+                        // Set student ID in the submission form
+                        document.getElementById('student-id').value = user.ID;
+
+                        // Fetch and display assignments for students
+                        try {
+                            const response = await fetch(`/assignments/student/${user.ID}`);
+                            const assignments = await response.json();
+                            const assignmentsList = document.getElementById('assignments-list');
+                            assignmentsList.innerHTML = assignments.map(assignment => {
+                                const dueDate = new Date(assignment.Due_Date);
+                                const currentDate = new Date();
+                                const isSubmitted = assignment.Submission_Date !== null;
+                                const canResubmit = currentDate < dueDate;
+
+                                return `
+                                    <div class="assignment-item">
+                                        <h3>${assignment.Title}</h3>
+                                        <p>${assignment.Post}</p>
+                                        <p><small>Section: ${assignment.Section_ID}</small></p>
+                                        <p><small>Points: ${assignment.Points}</small></p>
+                                        ${assignment.Attachment_URL ? `<p><a href="${assignment.Attachment_URL}" target="_blank">Attachment</a></p>` : ''}
+                                        <div class="bottom-right">
+                                            <p class="grade">${assignment.Grade !== undefined ? `${assignment.Grade}%` : 'Not Graded Yet'}</p>
+                                            ${isSubmitted ? `<p class="submitted-text">Submitted</p>` : ''}
+                                            <button class="submit-assignment-btn" data-assignment-id="${assignment.Assignment_ID}" ${isSubmitted && canResubmit ? 'style="background-color: gray;"' : ''} ${!canResubmit ? 'disabled' : ''}>
+                                                ${isSubmitted && canResubmit ? 'Resubmit' : 'Submit'}
+                                            </button>
+                                            <p class="due-date"><small>Due: ${dueDate.toLocaleString()}</small></p>
+                                        </div>
+                                    </div>`;
+                            }).join('');
+                        } catch (error) {
+                            console.error('Error fetching assignments for student:', error);
+                        }
+                    } else if (user.Role === 'Professor') {
+                        document.getElementById('create-assignment-btn').style.display = 'block';
+                        document.getElementById('section-filter').style.display = 'block';
+
+                        // Fetch and display assignments for professors
+                        const fetchAssignments = async (sectionId = '') => {
+                            try {
+                                const response = await fetch(`/assignments/professor/${user.ID}${sectionId ? `?sectionId=${sectionId}` : ''}`);
+                                const assignments = await response.json();
+                                const assignmentsList = document.getElementById('assignments-list');
+                                assignmentsList.innerHTML = assignments.map(assignment => 
+                                    `<div class="assignment-item">
+                                        <h3>${assignment.Title}</h3>
+                                        <p>${assignment.Post}</p>
+                                        <p><small>Section: ${assignment.Section_ID}</small></p>
+                                        <p><small>Points: ${assignment.Points}</small></p>
+                                        ${assignment.Attachment_URL ? `<p><a href="${assignment.Attachment_URL}" target="_blank">Attachment</a></p>` : ''}
+                                        <div class="bottom-right">
+                                            <p class="grade">${assignment.Grade !== undefined ? `${assignment.Grade}%` : 'Not Graded Yet'}</p>
+                                            <p class="due-date"><small>Due: ${new Date(assignment.Due_Date).toLocaleString()}</small></p>
+                                        </div>
+                                    </div>`
+                                ).join('');
+                            } catch (error) {
+                                console.error('Error fetching assignments for professor:', error);
+                            }
+                        };
+
+                        await fetchAssignments();
+
+                        try {
+                            const response = await fetch(`/sections?professorId=${user.ID}`);
+                            const sections = await response.json();
+                            const sectionsList = document.getElementById('sections-list');
+                            sectionsList.innerHTML = sections.map(section => 
+                                `<li class="section-item">Section ID: ${section.Section_ID} - Students: ${section.Student_Count}</li>`
+                            ).join('');
+                            document.getElementById('sections').style.display = 'block';
+
+                            // Populate section dropdown in the create assignment form
+                            const sectionSelect = document.getElementById('section-select');
+                            sectionSelect.innerHTML = sections.map(section => 
+                                `<option value="${section.Section_ID}">${section.Section_ID}</option>`
+                            ).join('');
+
+                            // Populate section filter dropdown
+                            const sectionFilter = document.getElementById('section-filter');
+                            sectionFilter.innerHTML += sections.map(section => 
+                                `<option value="${section.Section_ID}">${section.Section_ID}</option>`
+                            ).join('');
+
+                            sectionFilter.addEventListener('change', async (event) => {
+                                const sectionId = event.target.value;
+                                await fetchAssignments(sectionId);
+                            });
+                        } catch (error) {
+                            console.error('Error fetching sections:', error);
+                        }
+                    }
+                }
+            } else {
+                // Logout Status
+                authBtn.textContent = 'Login'; // Change Button text to Login
+                authBtn.href = 'login.html';
+            }
+
+            // Create Assignment Button Click
+            const createAssignmentBtn = document.getElementById('create-assignment-btn');
+            const createAssignmentPopup = document.getElementById('create-assignment-popup');
+            const closeBtn = document.querySelector('.close');
+
+            createAssignmentBtn.addEventListener('click', () => {
+                createAssignmentPopup.style.display = 'block';
+            });
+
+            closeBtn.addEventListener('click', () => {
+                createAssignmentPopup.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === createAssignmentPopup) {
+                    createAssignmentPopup.style.display = 'none';
+                }
+            });
+
+            // Create Assignment Form Submission
+            const createAssignmentForm = document.getElementById('create-assignment-form');
+            createAssignmentForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(createAssignmentForm);
+
+                try {
+                    const response = await fetch('/create-assignment', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const responseData = await response.json();
+
+                    if (response.ok) {
+                        document.getElementById('create-assignment-message').style.color = 'green';
+                        document.getElementById('create-assignment-message').textContent = responseData.message;
+                        setTimeout(() => {
+                            createAssignmentPopup.style.display = 'none';
+                        }, 2000);
+                    } else {
+                        document.getElementById('create-assignment-message').style.color = 'red';
+                        document.getElementById('create-assignment-message').textContent = responseData.message || 'Failed to create assignment';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+
+            // Submission Button Click
+            const submissionPopup = document.getElementById('submission-popup');
+            const closeSubmissionBtn = submissionPopup.querySelector('.close');
+
+            document.addEventListener('click', (event) => {
+                if (event.target.classList.contains('submit-assignment-btn')) {
+                    submissionPopup.style.display = 'block';
+                    submissionPopup.dataset.assignmentId = event.target.dataset.assignmentId;
+                }
+            });
+
+            closeSubmissionBtn.addEventListener('click', () => {
+                submissionPopup.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === submissionPopup) {
+                    submissionPopup.style.display = 'none';
+                }
+            });
+
+            // Submission Form Submission
+            const submissionForm = document.getElementById('submission-form');
+            submissionForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(submissionForm);
+                const assignmentId = submissionPopup.dataset.assignmentId;
+
+                try {
+                    const response = await fetch(`/submit-assignment/${assignmentId}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const responseData = await response.json();
+
+                    if (response.ok) {
+                        document.getElementById('submission-message').style.color = 'green';
+                        document.getElementById('submission-message').textContent = responseData.message;
+                        document.getElementById('submission-date').textContent = `Submission Date: ${new Date().toLocaleString()}`;
+                        setTimeout(() => {
+                            submissionPopup.style.display = 'none';
+                        }, 2000);
+                    } else {
+                        document.getElementById('submission-message').style.color = 'red';
+                        document.getElementById('submission-message').textContent = responseData.message || 'Failed to submit assignment';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    document.getElementById('submission-message').style.color = 'red';
+                    document.getElementById('submission-message').textContent = 'Failed to submit assignment: ' + error.message;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

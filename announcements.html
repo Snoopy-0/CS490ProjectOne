@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 490 Announcements</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="topnav">
+        <div class="user">
+            <span>CS 490 Webpage</span>
+        </div>
+        <div class="links">
+            <a href="cs490webpage.html">Home</a>
+            <a href="announcements.html" id="announcements-btn" class="active">Announcements</a>
+            <a href="grades.html" id="grades-btn">Grades</a>
+            <a href="assignments.html" id="assignments-btn">Assignments</a>
+            <a href="#" id="auth-btn">Login</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- User Information Section -->
+        <div id="user-info" class="user-info">
+            <h2>User Information</h2>
+            <p id="username"></p>
+            <p id="id"></p>
+            <p id="firstname"></p>
+            <p id="lastname"></p>
+            <p id="major-department"></p>
+            <p id="total_grade" class="total-grade" style="display: none;"></p>
+            <p id="section" style="display: none;"></p>
+        </div>
+
+        <!-- Announcements Section -->
+        <div id="announcements" class="announcements">
+            <div class="announcements-header">
+                <h2>Announcements</h2>
+                <button id="create-announcement-btn" style="display: none;">Create Announcement</button>
+            </div>
+            <div id="announcements-list"></div>
+        </div>
+    </div>
+
+    <!-- Create Announcement Popup -->
+    <div id="create-announcement-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <span class="close">&times;</span>
+            <h2>Create Announcement</h2>
+            <form id="create-announcement-form">
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
+
+                <label for="post">Post:</label>
+                <textarea id="post" name="post" required></textarea>
+
+                <label for="attachment">Attachment:</label>
+                <input type="file" id="attachment" name="attachment">
+
+                <button type="submit">Create Announcement</button>
+            </form>
+            <p id="announcement-message"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const authBtn = document.getElementById('auth-btn'); // Login/Logout button
+            const token = localStorage.getItem('token'); // Check JWT token
+            const user = JSON.parse(localStorage.getItem('user')); // Get user information
+            console.log('Token:', token); // Log the token to the console
+            if (token) {
+                // Login Status
+                authBtn.textContent = 'Logout'; // Change Button text to Logout
+                authBtn.href = '#';
+                authBtn.addEventListener('click', () => {
+                    // Logout process
+                    localStorage.removeItem('token'); // Remove token
+                    localStorage.removeItem('user'); // Remove user information
+                    alert('You have been logged out.');
+                    window.location.reload();
+                });
+
+                // Display user information
+                if (user) {
+                    console.log('User information:', user); // Log the user information to the console
+                    document.getElementById('username').textContent = `Username: ${user.Username}`;
+                    document.getElementById('id').textContent = `ID: ${user.ID}`;
+                    document.getElementById('firstname').textContent = `First Name: ${user.First_Name}`;
+                    document.getElementById('lastname').textContent = `Last Name: ${user.Last_Name}`;
+                    document.getElementById('major-department').textContent = `Major/Department: ${user.Major_Department}`;
+
+                    if (user.Role === 'Professor') {
+                        document.getElementById('create-announcement-btn').style.display = 'block';
+
+                        // Fetch and display announcements for professors
+                        try {
+                            const response = await fetch(`/announcements/professor/${user.ID}`);
+                            const announcements = await response.json();
+                            const announcementsList = document.getElementById('announcements-list');
+                            announcementsList.innerHTML = announcements.map(announcement => 
+                                `<div class="announcement-item">
+                                    <h3>${announcement.Title}</h3>
+                                    <p>${announcement.Post}</p>
+                                    ${announcement.Attachment_URL ? `<p><a href="${announcement.Attachment_URL}" target="_blank">Attachment</a></p>` : ''}
+                                    <p><small>Section: ${announcement.Section_ID}</small></p>
+                                </div>`
+                            ).join('');
+                        } catch (error) {
+                            console.error('Error fetching announcements for professor:', error);
+                        }
+
+                        // Create Announcement Button Click
+                        const createAnnouncementBtn = document.getElementById('create-announcement-btn');
+                        const createAnnouncementPopup = document.getElementById('create-announcement-popup');
+                        const closeBtn = createAnnouncementPopup.querySelector('.close');
+
+                        createAnnouncementBtn.addEventListener('click', () => {
+                            createAnnouncementPopup.style.display = 'block';
+                        });
+
+                        closeBtn.addEventListener('click', () => {
+                            createAnnouncementPopup.style.display = 'none';
+                        });
+
+                        window.addEventListener('click', (event) => {
+                            if (event.target === createAnnouncementPopup) {
+                                createAnnouncementPopup.style.display = 'none';
+                            }
+                        });
+
+                        // Create Announcement Form Submission
+                        const createAnnouncementForm = document.getElementById('create-announcement-form');
+                        createAnnouncementForm.addEventListener('submit', async (event) => {
+                            event.preventDefault();
+
+                            const formData = new FormData(createAnnouncementForm);
+
+                            try {
+                                const response = await fetch(`/create-announcement`, {
+                                    method: 'POST',
+                                    body: formData
+                                });
+
+                                const responseData = await response.json();
+
+                                if (response.ok) {
+                                    document.getElementById('announcement-message').style.color = 'green';
+                                    document.getElementById('announcement-message').textContent = responseData.message;
+                                    setTimeout(() => {
+                                        createAnnouncementPopup.style.display = 'none';
+                                        window.location.reload();
+                                    }, 2000);
+                                } else {
+                                    document.getElementById('announcement-message').style.color = 'red';
+                                    document.getElementById('announcement-message').textContent = responseData.message || 'Failed to create announcement';
+                                }
+                            } catch (error) {
+                                console.error('Error:', error);
+                                document.getElementById('announcement-message').style.color = 'red';
+                                document.getElementById('announcement-message').textContent = 'Failed to create announcement: ' + error.message;
+                            }
+                        });
+                    } else if (user.Role === 'Student') {
+                        // Fetch and display announcements for students
+                        try {
+                            const response = await fetch(`/announcements/student/${user.ID}`);
+                            const announcements = await response.json();
+                            const announcementsList = document.getElementById('announcements-list');
+                            announcementsList.innerHTML = announcements.map(announcement => 
+                                `<div class="announcement-item">
+                                    <h3>${announcement.Title}</h3>
+                                    <p>${announcement.Post}</p>
+                                    ${announcement.Attachment_URL ? `<p><a href="${announcement.Attachment_URL}" target="_blank">Attachment</a></p>` : ''}
+                                    <p><small>Section: ${announcement.Section_ID}</small></p>
+                                </div>`
+                            ).join('');
+                        } catch (error) {
+                            console.error('Error fetching announcements for student:', error);
+                        }
+                    }
+                }
+            } else {
+                // Logout Status
+                authBtn.textContent = 'Login'; // Change Button text to Login
+                authBtn.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>

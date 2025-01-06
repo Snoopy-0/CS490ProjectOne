@@ -111,6 +111,8 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
 }
 
 .gradeboxes {
@@ -119,6 +121,7 @@ body {
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    width: 48%;
 }
 
 /* Announcements Section */
@@ -180,14 +183,328 @@ body {
     background-color: #0056b3;
 }
 
-
-/* Hiding Status */
-.restricted {
-    display: none;
+#login-message {
+    margin-top: 10px;
+    color: red;
 }
 
-.alert {
-    color: red;
-    font-size: 16px;
+#signup-btn {
     margin-top: 10px;
+    padding: 10px;
+    font-size: 16px;
+    background-color: blue;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+}
+
+#signup-btn:hover {
+    background-color: darkblue;
+}
+
+/* Popup styling */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    position: relative;
+}
+
+.popup-content .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    color: gray;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#signup-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#signup-form label {
+    margin-top: 10px;
+    font-weight: bold;
+    align-self: flex-start;
+}
+
+#signup-form input, #signup-form select {
+    margin-top: 5px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    width: 100%;
+}
+
+#signup-form button {
+    margin-top: 20px;
+    padding: 10px;
+    font-size: 16px;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+}
+
+#signup-form button:hover {
+    background-color: darkgreen;
+}
+
+/* Assignments and Grades Sections */
+.assignments, .grades {
+    margin-top: 20px;
+}
+
+.assignments-header, .grades-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.assignments-header h2, .grades-header h2 {
+    margin: 0;
+}
+
+.assignment-item, .grade-item {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.assignment-item h3, .grade-item h3 {
+    margin-top: 0;
+}
+
+.bottom-right {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.grade {
+    font-size: 18px;
+    color: #333;
+}
+
+.due-date {
+    font-size: 14px;
+    color: #888;
+}
+
+/* student submit assignment button */
+button {
+    padding: 10px;
+    font-size: 14px;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: darkgreen;
+}
+
+#submission-form .submit-button:hover {
+    background-color: greenyellow;
+}
+
+#submission-date {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 15px;
+}
+
+.submitted-text {
+    font-size: 18px;
+    color: green;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.submit-assignment-btn[style*="background-color: gray;"] {
+    background-color: gray;
+    cursor: not-allowed;
+}
+
+/* Styles specific to grades.html */
+
+/* Grades Section */
+.grades {
+    margin-top: 20px;
+}
+
+.grades-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.grades-header h2 {
+    margin: 0;
+}
+
+.grade-item {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.grade-item h3 {
+    margin-top: 0;
+    cursor: pointer;
+}
+
+.bottom-right {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.grade {
+    font-size: 18px;
+    color: #333;
+}
+
+.due-date {
+    font-size: 14px;
+    color: #888;
+}
+
+/* Popup styling */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    position: relative;
+}
+
+.popup-content .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    color: gray;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#signup-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#signup-form label {
+    margin-top: 10px;
+    font-weight: bold;
+    align-self: flex-start;
+}
+
+#signup-form input, #signup-form select {
+    margin-top: 5px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    width: 100%;
+}
+
+#signup-form button {
+    margin-top: 20px;
+    padding: 10px;
+    font-size: 16px;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+}
+
+#signup-form button:hover {
+    background-color: darkgreen;
+}
+
+/* Student Information Section */
+.user-info {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.user-info h2 {
+    margin-top: 0;
+}
+
+.user-info p {
+    margin-bottom: 10px;
+}
+
+.user-info .total-grade {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    text-align: right;
 }

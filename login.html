@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - CS 490</title>
+    <title>Login</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Login Form -->
     <div class="login-container">
         <h2>Login</h2>
         <form id="login-form">
@@ -18,10 +17,48 @@
             <input type="password" id="password" name="password" required>
             
             <button type="submit">Login</button>
+            <p id="login-message"></p>
         </form>
-        <p id="login-message"></p> 
+        <button id="signup-btn">Sign Up</button>
     </div>
 
+    <!-- Signup Popup -->
+    <div id="signup-popup" class="popup">
+        <div class="popup-content">
+            <span class="close">&times;</span>
+            <h2>Sign Up</h2>
+            <form id="signup-form">
+                <label for="role">Role:</label>
+                <select id="role" name="role" required>
+                    <option value="Student">Student</option>
+                    <option value="Professor">Professor</option>
+                </select>
+
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+
+                <label for="firstname">First Name:</label>
+                <input type="text" id="firstname" name="firstname" required>
+
+                <label for="lastname">Last Name:</label>
+                <input type="text" id="lastname" name="lastname" required>
+
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="section" style="display: none;">Section:</label>
+                <select id="section" name="section" style="display: none;"></select>
+
+                <button type="submit">Sign Up</button>
+                <p id="register-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <script src="signup.js"></script>
     <script src="login.js"></script>
 </body>
 </html>
